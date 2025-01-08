@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Authentication</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+  <link rel="stylesheet" href="style1.css" />
+</head>
+<body>
+
+<div ng-app="myApp" ng-controller="authCtrl" class="container">
+  <h2>Welcome!</h2>
+  <div class="toggle-buttons">
+    <button ng-click="showLogin()">Login</button>
+    <button ng-click="showSignup()">Sign Up</button>
+  </div>
+  <div ng-show="showLoginForm">
+    <form ng-submit="login()" novalidate class="form-group">
+      <input type="email" ng-model="loginData.email" placeholder="Email" required><br>
+      <input type="password" ng-model="loginData.password" placeholder="Password" required><br>
+      <button type="submit">Login</button>
+      <div class="error" ng-if="loginError">{{ loginError }}</div>
+    </form>
+  </div>
+  <div ng-show="showSignupForm">
+    <form ng-submit="signup()" novalidate class="form-group">
+      <input type="text" ng-model="signupData.name" placeholder="Name" required><br>
+      <input type="email" ng-model="signupData.email" placeholder="Email" required><br>
+      <input type="password" ng-model="signupData.password" placeholder="Password" required><br>
+      <button type="submit">Sign Up</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  var app = angular.module('myApp', []);
+  app.controller('authCtrl', function($scope, $http, $window) {
+    $scope.showLoginForm = false;
+    $scope.showSignupForm = false;
+    $scope.loginData = {};
+    $scope.signupData = {};
+    $scope.loginError = '';
+
+    $scope.showLogin = function() {
+      $scope.showLoginForm = true;
+      $scope.showSignupForm = false;
+      $scope.loginError = '';
+    };
+
+    $scope.showSignup = function() {
+      $scope.showLoginForm = false;
+      $scope.showSignupForm = true;
+    };
+
+    $scope.login = function() {
+      $http.post('http://localhost:3000/login', $scope.loginData)
+        .then(function(response) {
+          console.log(response.data);
+          $window.location.href = 'planner.html';
+        })
+        .catch(function(error) {
+          console.error(error);
+          if (error.status === 404) {
+            $scope.loginError = 'Email not found';
+          } else if (error.status === 401) {
+            $scope.loginError = 'Incorrect password';
+          }
+        });
+    };
+
+    $scope.signup = function() {
+      var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      var passwordPattern = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+
+      if (!emailPattern.test($scope.signupData.email)) {
+        window.alert("Please enter a valid email address.");
+        return;
+      }
+
+      if (!passwordPattern.test($scope.signupData.password)) {
+        window.alert("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one digit.");
+        return;
+      }
+
+      $http.post('http://localhost:3000/signup', $scope.signupData)
+        .then(function(response) {
+          console.log(response.data);
+          $window.location.href = 'planner.html';
+        })
+        .catch(function(error) {
+          console.error(error);
+        });
+    };
+  });
+</script>
+</body>
+</html>
